@@ -1,0 +1,1 @@
+export { makeGame } from './gameFactory';

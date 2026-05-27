@@ -1,0 +1,15 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+@theme {
+  --color-primary: #66c0f4;
+  --color-primary-focus: #4194c4;
+  --color-background-base: #171a21;
+  --color-background-surface: #1b2838;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-background-base);
+  color: #fff;
+}

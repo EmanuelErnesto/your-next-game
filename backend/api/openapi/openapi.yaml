@@ -1,0 +1,305 @@
+openapi: 3.1.0
+info:
+  title: your-next-game-backend API
+  version: 1.0.0
+  description: HTTP contracts for your-next-game-backend.
+servers:
+  - url: http://localhost:8080
+paths:
+  /healthz:
+    get:
+      summary: Liveness probe
+      responses:
+        '200':
+          description: Alive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+  /readyz:
+    get:
+      summary: Readiness probe
+      responses:
+        '200':
+          description: Ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+        '503':
+          description: Dependency unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadyErrorResponse'
+  /v1/version:
+    get:
+      summary: Service version
+      responses:
+        '200':
+          description: Version
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [version]
+                properties:
+                  version:
+                    type: string
+  /v1/auth/steam/login-url:
+    get:
+      summary: Build Steam OpenID login URL
+      responses:
+        '200':
+          description: Login URL
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url]
+                properties:
+                  url:
+                    type: string
+                    format: uri
+  /v1/auth/steam/exchange:
+    post:
+      summary: Exchange Steam ID for normalized auth user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [steamId]
+              properties:
+                steamId:
+                  type: string
+      responses:
+        '200':
+          description: Auth user or null
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/AuthUser'
+                  - type: 'null'
+        '400':
+          description: Invalid request body or missing steamId
+        '502':
+          description: Upstream Steam dependency failure
+        '504':
+          description: Upstream timeout
+  /v1/auth/me:
+    get:
+      summary: Get authenticated user from access token
+      responses:
+        '200':
+          description: Auth user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUser'
+        '401':
+          description: Unauthorized
+        '500':
+          description: User lookup failure
+  /v1/auth/logout:
+    get:
+      summary: Clear auth cookies and redirect to the frontend
+      responses:
+        '302':
+          description: Redirect to frontend base URL
+  /v1/users/{userId}/games:
+    get:
+      summary: List games for user
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: User games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+        '400':
+          description: Invalid or missing userId
+        '500':
+          description: Repository failure
+        '504':
+          description: Repository timeout
+  /v1/users/{userId}/games/{gameId}:
+    get:
+      summary: Get game by user scope
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: Game or null
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Game'
+                  - type: 'null'
+        '400':
+          description: Invalid or missing userId/gameId
+        '500':
+          description: Repository failure
+        '504':
+          description: Repository timeout
+  /v1/integrations/steam/users/{steamId}/games:
+    get:
+      summary: List Steam owned games
+      parameters:
+        - $ref: '#/components/parameters/SteamId'
+      responses:
+        '200':
+          description: Steam games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+        '400':
+          description: Invalid or missing steamId
+        '502':
+          description: Upstream Steam dependency failure
+        '504':
+          description: Upstream timeout
+  /v1/catalog/steam/apps/{appId}:
+    get:
+      summary: Get Steam catalog details
+      parameters:
+        - $ref: '#/components/parameters/AppId'
+      responses:
+        '200':
+          description: Catalog details or null
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/SteamStoreProjection'
+                  - type: 'null'
+        '400':
+          description: Invalid or missing appId
+        '502':
+          description: Upstream Steam dependency failure
+        '504':
+          description: Upstream timeout
+components:
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+    GameId:
+      name: gameId
+      in: path
+      required: true
+      schema:
+        type: string
+    SteamId:
+      name: steamId
+      in: path
+      required: true
+      schema:
+        type: string
+    AppId:
+      name: appId
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    StatusResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+    ReadyErrorResponse:
+      type: object
+      required: [status, error]
+      properties:
+        status:
+          type: string
+        error:
+          type: string
+    AuthUser:
+      type: object
+      required: [id, steamId, name, image]
+      properties:
+        id:
+          type: string
+        steamId:
+          type: string
+        name:
+          type: string
+        image:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+    Game:
+      type: object
+      required:
+        - id
+        - title
+        - coverUrl
+        - status
+        - genre
+        - platform
+        - description
+        - developer
+        - releaseDate
+        - hoursPlayed
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        coverUrl:
+          type: string
+        status:
+          type: string
+        genre:
+          type: string
+        platform:
+          type: string
+        description:
+          type: string
+        developer:
+          type: string
+        releaseDate:
+          type: string
+        hoursPlayed:
+          type: number
+        rating:
+          type: number
+          nullable: true
+        steamAppId:
+          type: string
+          nullable: true
+    SteamStoreProjection:
+      type: object
+      required: [title, description, developer, genre, releaseDate, coverUrl]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        developer:
+          type: string
+        genre:
+          type: string
+        releaseDate:
+          type: string
+        coverUrl:
+          type: string

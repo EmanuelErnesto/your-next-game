@@ -1,0 +1,9 @@
+[
+  {
+    "label": "Claude Code (Ollama)",
+    "command": "ollama launch claude --model glm-5.1:cloud",
+    "use_new_terminal": true,
+    "allow_concurrent_runs": false,
+    "reveal": "always"
+  }
+]

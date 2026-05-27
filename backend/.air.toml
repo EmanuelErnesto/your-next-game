@@ -1,0 +1,13 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/api ./cmd/api"
+  bin = "tmp/api"
+  include_ext = ["go", "sql", "yaml", "yml", "html", "tmpl"]
+  exclude_dir = ["tmp", "vendor", "node_modules"]
+  stop_on_error = true
+  delay = 500
+
+[log]
+  time = true

@@ -1,0 +1,18 @@
+# Compiled Go Binaries
+/server
+/api/server
+/bin/
+
+# Dependency directories
+/vendor/
+
+# Local environment configuration
+.env
+.env.local
+
+# IDEs
+.idea/
+.vscode/
+
+# System files
+.DS_Store
